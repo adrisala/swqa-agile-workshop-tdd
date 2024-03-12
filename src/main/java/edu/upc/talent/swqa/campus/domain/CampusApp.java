@@ -3,6 +3,9 @@ package edu.upc.talent.swqa.campus.domain;
 import edu.upc.talent.swqa.campus.infrastructure.PostgreSqlUsersRepository;
 import edu.upc.talent.swqa.campus.infrastructure.SmtpEmailService;
 import edu.upc.talent.swqa.jdbc.Database;
+
+import java.util.Optional;
+
 import static edu.upc.talent.swqa.jdbc.HikariCP.getDataSource;
 
 public final class CampusApp {
@@ -65,8 +68,22 @@ public final class CampusApp {
           .forEach(u -> emailService.sendEmail(u, subject, body));
   }
 
-    public void sendEmailToTeacherId(String id, String subject, String body) {
-      final var user = usersRepository.getUserById(id);
+    public void sendEmailToTeacherId(String id, String subject, String body) throws Exception{
+      if (subject == null || subject.isBlank()) {
+        throw new Exception("The email subject is mandatory");
+      }
+
+      final Optional<User> maybeUser = usersRepository.getUserById(id);
+
+      if (maybeUser.isEmpty()) {
+        throw new Exception("User " + id + " does not exist");
+      }
+
+      final User user = maybeUser.get();
+
+      if (!user.role().equals("teacher")) {
+        throw new Exception("User " + id + " is not a teacher");
+      }
 
       emailService.sendEmail(user, subject, body);
     }

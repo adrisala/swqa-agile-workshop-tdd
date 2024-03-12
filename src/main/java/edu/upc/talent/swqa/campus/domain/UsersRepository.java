@@ -1,6 +1,8 @@
 package edu.upc.talent.swqa.campus.domain;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 public interface UsersRepository {
   List<User> getUsersByGroup(final String groupName);
@@ -10,6 +12,6 @@ public interface UsersRepository {
 
   void createGroup(final String id, final String name);
 
-  User getUserById(String id);
+  Optional<User> getUserById(String id) throws NoSuchElementException;
 
 }

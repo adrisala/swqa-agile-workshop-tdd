@@ -11,10 +11,14 @@ import static edu.upc.talent.swqa.test.utils.Asserts.assertEquals;
 import static edu.upc.talent.swqa.util.Utils.now;
 import static edu.upc.talent.swqa.util.Utils.plus;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 
 public interface UsersRepositoryTest {
@@ -76,9 +80,10 @@ public interface UsersRepositoryTest {
     final var repository = getRepository(defaultInitialState);
     final var id = "3";
 
-    final User resultUser = repository.getUserById(id);
+    final Optional<User> resultUser = repository.getUserById(id);
 
-    assertEquals(mariahHairam, resultUser);
+    assertEquals(true, resultUser.isPresent());
+    assertEquals(mariahHairam, resultUser.get());
     assertExpectedFinalState(defaultInitialState);
   }
 
@@ -87,9 +92,9 @@ public interface UsersRepositoryTest {
     final var repository = getRepository(defaultInitialState);
     final var id = "-1";
 
-    final User resultUser = repository.getUserById(id);
+    final Optional<User> resultUser = repository.getUserById(id);
 
-    assertEquals(null, resultUser);
+    assertEquals(true, resultUser.isEmpty());
     assertExpectedFinalState(defaultInitialState);
   }
 }

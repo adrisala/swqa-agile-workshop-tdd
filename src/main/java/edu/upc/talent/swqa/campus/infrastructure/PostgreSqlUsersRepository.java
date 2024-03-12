@@ -7,6 +7,7 @@ import edu.upc.talent.swqa.jdbc.Database;
 import static edu.upc.talent.swqa.jdbc.Param.p;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PostgreSqlUsersRepository implements UsersRepository {
 
@@ -68,7 +69,21 @@ public class PostgreSqlUsersRepository implements UsersRepository {
   }
 
   @Override
-  public User getUserById(String id) {
-    return null;
+  public Optional<User> getUserById(String id) {
+
+    return db.select("""
+          select u.id, u.name, u.surname, u.email, u.role, g.name, u.created_at
+          from users u join groups g on u.group_id = g.id
+          where u.active and u.id = ?""",
+          (u) -> new User(
+                  u.getString(1),
+                  u.getString(2),
+                  u.getString(3),
+                  u.getString(4),
+                  u.getString(5),
+                  u.getString(6),
+                  u.getInstant(7)
+          ),
+          p(id)).stream().findFirst();
   }
 }

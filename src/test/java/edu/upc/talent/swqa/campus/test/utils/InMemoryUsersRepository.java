@@ -7,6 +7,7 @@ import static edu.upc.talent.swqa.util.Utils.now;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public record InMemoryUsersRepository(UsersRepositoryState state) implements UsersRepository {
 
@@ -29,8 +30,8 @@ public record InMemoryUsersRepository(UsersRepositoryState state) implements Use
   }
 
   @Override
-  public User getUserById(String id) {
-    return state.users().stream().filter(user -> user.id().equals(id)).findFirst().get();
+  public Optional<User> getUserById(String id) {
+    return state.users().stream().filter(user -> user.id().equals(id)).findFirst();
   }
 
 

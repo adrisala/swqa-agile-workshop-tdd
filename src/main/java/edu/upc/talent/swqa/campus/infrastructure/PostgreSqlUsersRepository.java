@@ -66,4 +66,9 @@ public class PostgreSqlUsersRepository implements UsersRepository {
   @Override public void createGroup(final String id, final String name) {
     db.update("insert into groups (id, name) values (?, ?)", p(id), p(name));
   }
+
+  @Override
+  public User getUserById(String id) {
+    return null;
+  }
 }

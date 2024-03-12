@@ -70,6 +70,28 @@ public interface UsersRepositoryTest {
     assertEquals("Group " + groupName + " does not exist", exception.getMessage());
     assertExpectedFinalState(defaultInitialState);
   }
+
+  @Test
+  default void testGetUserById(){
+    final var repository = getRepository(defaultInitialState);
+    final var id = "3";
+
+    final User resultUser = repository.getUserById(id);
+
+    assertEquals(mariahHairam, resultUser);
+    assertExpectedFinalState(defaultInitialState);
+  }
+
+  @Test
+  default void testGetUserNonExistent(){
+    final var repository = getRepository(defaultInitialState);
+    final var id = "-1";
+
+    final User resultUser = repository.getUserById(id);
+
+    assertEquals(null, resultUser);
+    assertExpectedFinalState(defaultInitialState);
+  }
 }
 
 

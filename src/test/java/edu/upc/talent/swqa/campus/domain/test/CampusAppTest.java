@@ -9,6 +9,8 @@ import static edu.upc.talent.swqa.campus.test.utils.TestFixtures.defaultInitialS
 import edu.upc.talent.swqa.campus.test.utils.UsersRepositoryState;
 import static edu.upc.talent.swqa.test.utils.Asserts.assertEquals;
 import static edu.upc.talent.swqa.util.Utils.union;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -72,6 +74,26 @@ public final class CampusAppTest {
           Set.of(new SentEmail("mariah.hairam@example.com", subject, body))
     );
     assertEquals(expectedFinalState, getFinalState());
+  }
+
+  @Test
+  @Disabled
+  public void testSendEmailToTeacherId(){
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final var subject = "Hey! Teacher!";
+    final var body = "Let them students alone!!";
+
+    app.sendEmailToTeacherId(id, subject, body);
+    final var expectedFinalState = new CampusAppState(
+            defaultInitialState.usersRepositoryState(),
+            Set.of(new SentEmail("mariah.hairam@example.com", subject, body))
+    );
+    assertEquals(expectedFinalState, getFinalState());
+  }
+  @Test
+  public void testFailIfIdNotExist() {
+
   }
 
 }

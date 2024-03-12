@@ -28,6 +28,11 @@ public record InMemoryUsersRepository(UsersRepositoryState state) implements Use
     state.groups().add(new Group(id, name));
   }
 
+  @Override
+  public User getUserById(String id) {
+    return state.users().stream().filter(user -> user.id().equals(id)).findFirst().get();
+  }
+
 
   @Override
   public List<User> getUsersByGroup(final String groupName) {

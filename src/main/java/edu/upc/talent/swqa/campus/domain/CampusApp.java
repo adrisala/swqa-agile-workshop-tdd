@@ -64,4 +64,10 @@ public final class CampusApp {
     users.stream().filter(u -> u.role().equals(roleName))
           .forEach(u -> emailService.sendEmail(u, subject, body));
   }
+
+    public void sendEmailToTeacherId(String id, String subject, String body) {
+      final var user = usersRepository.getUserById(id);
+
+      emailService.sendEmail(user, subject, body);
+    }
 }

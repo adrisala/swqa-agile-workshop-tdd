@@ -89,12 +89,16 @@ public final class CampusApp {
     }
 
     public void sendEmailToTeacherIdWithConfirmation(String id, String subject, String body, boolean confirm) throws Exception {
-      if (!confirm && body == null) {
+      if (confirm) {
+        if (body == null) {
+          body = "";
+        } else if (body.isBlank()) {
+          throw new Exception("El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'");
+        }
+      } else if (body == null) {
         throw new Exception("No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'");
-      }
-
-      if (confirm && body == null) {
-        body = "";
+      } else if (body.isBlank()) {
+        throw new Exception("El cuerpo debería ser nulo. Cámbielo y marque la casilla 'Confirmar'");
       }
 
       sendEmailToTeacherId(id, subject, body);

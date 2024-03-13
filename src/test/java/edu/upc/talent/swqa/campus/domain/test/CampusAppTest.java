@@ -224,6 +224,30 @@ public final class CampusAppTest {
   }
 
   @Test
+  public void testSendEmailToTeacherConfirmId(){
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final var subject = "Hey! Teacher!";
+    final var body = "Let them students alone!!";
+
+    // Act
+    try {
+      app.sendEmailToTeacherIdWithConfirmation(id, subject, body, true);
+
+      // Assert
+    } catch (Exception e) {
+      Assertions.fail();
+    }
+
+    final var expectedFinalState = new CampusAppState(
+            defaultInitialState.usersRepositoryState(),
+            Set.of(new SentEmail("mariah.hairam@example.com", subject, body))
+    );
+    assertEquals(expectedFinalState, getFinalState());
+  }
+
+  @Test
   public void testSendEmailToTeacherNoConfirmBodyNull() {
     // Arrange
     final var app = getApp(defaultInitialState);
@@ -290,10 +314,10 @@ public final class CampusAppTest {
       app.sendEmailToTeacherIdWithConfirmation(id, subject, body, true);
 
     // Assert
-      Assertions.fail("This test shouldn't raise an Exception");
+      Assertions.fail("This test should raise an Exception");
     } catch (Exception e) {
       assertEquals(
-              "No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'",
+              "El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'",
               e.getMessage()
       );
     }
@@ -305,6 +329,91 @@ public final class CampusAppTest {
     assertEquals(expectedFinalState, getFinalState());
   }
 
+  @Test
+  public void testSendEmailToTeacherConfirmBodyFullOfNothing() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = "    ";
+
+    // Act
+    try {
+      app.sendEmailToTeacherIdWithConfirmation(id, subject, body, true);
+
+      // Assert
+      Assertions.fail("This test should raise an Exception");
+    } catch (Exception e) {
+      assertEquals(
+              "El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'",
+              e.getMessage()
+      );
+    }
+
+    final var expectedFinalState = new CampusAppState(
+            defaultInitialState.usersRepositoryState(),
+            defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+  }
+
+  @Test
+  public void testSendEmailToTeacherNotConfirmBodyEmpty() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = "";
+
+    // Act
+    try {
+      app.sendEmailToTeacherIdWithConfirmation(id, subject, body, false);
+
+      // Assert
+      Assertions.fail("This test should raise an Exception");
+    } catch (Exception e) {
+      assertEquals(
+              "El cuerpo debería ser nulo. Cámbielo y marque la casilla 'Confirmar'",
+              e.getMessage()
+      );
+    }
+
+    final var expectedFinalState = new CampusAppState(
+            defaultInitialState.usersRepositoryState(),
+            defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+
+  }
+
+  @Test
+  public void testSendEmailToTeacherNotConfirmBodyFullOfNothing() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = "    ";
+
+    // Act
+    try {
+      app.sendEmailToTeacherIdWithConfirmation(id, subject, body, false);
+
+      // Assert
+      Assertions.fail("This test should raise an Exception");
+    } catch (Exception e) {
+      assertEquals(
+              "El cuerpo debería ser nulo. Cámbielo y marque la casilla 'Confirmar'",
+              e.getMessage()
+      );
+    }
+
+    final var expectedFinalState = new CampusAppState(
+            defaultInitialState.usersRepositoryState(),
+            defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+
+  }
 
 
 }

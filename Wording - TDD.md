@@ -648,6 +648,37 @@ Desde el análisis de la usabilidad nos dicen que, de nuevo, han detectado una p
 
 2. Si el parámetro `confirm` es `false` y el cuerpo del mensaje es `null`, se informará mediante una excepción que contenga el mensaje `"No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'"`. Si el parámetro `confirm` es `true` se enviará el mensaje sin cuerpo. Para evitar confusiones, si el cuerpo del mensaje a enviar es un `String` vacío o un `String` con solo carácteres en blanco, se informará como error con un mensaje que distinga entre ambos casos, independientemente del valor del parámetro `confirm`; es decir, si no se quiere enviar cuerpo del mensaje, deberá indicarse con `null` Y con el parámetro `confirm` a `true`.
 
+### Happy path
+
+Definiremos el siguiente test como prototipo del resultado esperado de la función. Aquí definiremos el método `sendEmailToTeacherIdWithConfirmation(...)`.
+
+```
+@Test
+public void testSendEmailToTeacherConfirmId(){
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final var subject = "Hey! Teacher!";
+    final var body = "Let them students alone!!";
+    
+    // Act
+    try {
+        app.sendEmailToTeacherIdWithConfirmation(id, subject, body, true);
+    
+    // Assert
+    } catch (Exception e) {
+        Assertions.fail();
+    }
+    
+    final var expectedFinalState = new CampusAppState(
+        defaultInitialState.usersRepositoryState(),
+        Set.of(new SentEmail("mariah.hairam@example.com", subject, body))
+    );
+    assertEquals(expectedFinalState, getFinalState());
+}
+
+```
+
 Para añadir este nuevo requisito, creamos una nueva función como wrapper de la función anterior, donde además de los parámetros de `id`, `subject` y `body` se le pasa un cuarto parámetro `confirm`. De esta forma, tenemos tanto la funcionalidad anterior como la nueva deseada sin romper nada.
 
 ```
@@ -656,12 +687,14 @@ public void sendEmailToTeacherIdWithConfirmation(String id, String subject, Stri
 }
 ```
 
-Dividimos este requisito en 4 pasos
+Con este cambio, podemos ejecutar los test y ver que pasan correctamente. Pero nos faltará definir los casos excepcionales.
+
+Para cumplir con la tarea, dividiremos este requisito en 4 pasos
 
 1. Cuerpo `null` y `confirm` es `false`: informar con `Exception("No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'")`
 2. Cuerpo `null` y `confirm` es `true`: mandar correo sin cuerpo
-3. Cuerpo vacío: informar de error
-4. Cuerpo lleno de carácteres blancos: informar de error
+3. Cuerpo vacío o solo carácteres en blanco y `confirm` es `true`: informar con `Exception("El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'")`
+4. Cuerpo vacío o solo carácteres en blanco y `confirm` es `false`: informar de error `Exception("El cuerpo debería ser nulo. Cámbielo y marque la casilla 'Confirmar'")`
 
 ### Cuerpo Nulo + Confirm Falso (1)
 
@@ -759,3 +792,206 @@ public void sendEmailToTeacherIdWithConfirmation(String id, String subject, Stri
 }
 ```
 
+Tras aplicar este cambio, podemos observar como pasa el test correctamente y podemos pasar a implementar la prueba relacionada con el punto 3.
+
+### Cuerpo Vacío + Confirm True (3)
+
+Empezaremos a implementar la prueba del punto 3 asegurándonos que la excepción contenga el mensaje esperado.
+
+```
+@Test
+public void testSendEmailToTeacherConfirmBodyEmpty() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = "";
+    
+    // Act
+    try {
+        app.sendEmailToTeacherIdWithConfirmation(id, subject, body, true);
+    
+    // Assert
+        Assertions.fail("This test should raise an Exception");
+    } catch (Exception e) {
+        assertEquals(
+            "El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'",
+            e.getMessage()
+        );
+    }
+    
+    final var expectedFinalState = new CampusAppState(
+        defaultInitialState.usersRepositoryState(),
+        defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+}
+```
+
+Ejecutamos el test y podemos observar que no pasa. Nos tocará añadir un cambio al método `sendEmailToTeacherIdWithConfirmation(...)` de la clase `CampusApp` para controlar el caso en que el string está vacío y el confirm está a `true`.
+
+```
+public void sendEmailToTeacherIdWithConfirmation(String id, String subject, String body, boolean confirm) throws Exception {
+    if (!confirm && body == null) {
+        throw new Exception("No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'");
+    }
+    
+    if (confirm && body == null) {
+        body = "";
+    }
+    
+    if (confirm && body.isBlank()) {
+        throw new Exception("El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'");
+    }
+    
+    sendEmailToTeacherId(id, subject, body);
+}
+```
+
+Tras aplicar este cambio, hemos visto que el test pasaba correctamente pero nos hemos dado cuenta de que había mucho codigo duplicado. Entramos en la fase de refactor y aplicamos el siguiente cambio:
+```
+public void sendEmailToTeacherIdWithConfirmation(String id, String subject, String body, boolean confirm) throws Exception {
+
+    if (confirm) {
+        if (body == null) {
+            body = "";
+        } else if (body.isBlank()) {
+            throw new Exception("El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'");
+        }
+    } else if (body == null) {
+        throw new Exception("No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'");
+    }
+    
+    sendEmailToTeacherId(id, subject, body);
+}
+```
+Una vez aplicado el cambio, vemos como pasa el test correctamente y podemos pasar a la implementación del siguiente caso.
+
+### Cuerpo Vacío (carácteres en blanco) + Confirm True (3.1)
+
+Implementaremos el siguiente test para tener en cuenta el caso de carácteres en blanco.
+```
+@Test
+public void testSendEmailToTeacherConfirmBodyFullOfNothing() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = "    ";
+    
+    // Act
+    try {
+        app.sendEmailToTeacherIdWithConfirmation(id, subject, body, true);
+    
+    // Assert
+        Assertions.fail("This test should raise an Exception");
+    } catch (Exception e) {
+        assertEquals(
+            "El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'",
+            e.getMessage()
+        );
+    }
+    
+    final var expectedFinalState = new CampusAppState(
+        defaultInitialState.usersRepositoryState(),
+        defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+}
+```
+
+Con la implementación actual podemos observar como pasan los test correctamente, asi que podemos pasar a implementar el siguiente caso.
+
+### Cuerpo Vacío + Confirm False (4)
+
+Implementamos el test en relación al caso definido y lo ejecutamos.
+
+```
+@Test
+public void testSendEmailToTeacherNotConfirmBodyEmpty() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = "";
+    
+    // Act
+    try {
+        app.sendEmailToTeacherIdWithConfirmation(id, subject, body, false);
+    
+    // Assert
+        Assertions.fail("This test should raise an Exception");
+    } catch (Exception e) {
+        assertEquals(
+            "El cuerpo debería ser nulo. Cámbielo y marque la casilla 'Confirmar'",
+            e.getMessage()
+        );
+    }
+    
+    final var expectedFinalState = new CampusAppState(
+        defaultInitialState.usersRepositoryState(),
+        defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+
+}
+```
+
+Ejecutamos el test y podemos observar que no pasa. Nos tocará añadir un cambio al método `sendEmailToTeacherIdWithConfirmation(...)` de la clase `CampusApp` para controlar el caso en que el string está vacío y el confirm está a `false`, para devolver el mensaje correcto en la excepción.
+
+```
+public void sendEmailToTeacherIdWithConfirmation(String id, String subject, String body, boolean confirm) throws Exception {
+    if (confirm) {
+        if (body == null) {
+            body = "";
+        } else if (body.isBlank()) {
+            throw new Exception("El cuerpo debería ser nulo. Cámbielo y mantenga marcada la casilla 'Confirmar'");
+        }
+    } else if (body == null) {
+        throw new Exception("No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'");
+    } else if (body.isBlank()) {
+        throw new Exception("El cuerpo debería ser nulo. Cámbielo y marque la casilla 'Confirmar'");
+    }
+    
+    sendEmailToTeacherId(id, subject, body);
+}
+```
+
+Una vez hemos añadido este cambio, ejecutamos una vez más los test y vemos que pasan correctamente.
+
+### Cuerpo Vacío (carácteres en blanco) + Confirm False (4.1)
+
+Definiremos el test para este último caso, teniendo en cuenta el parámetro `body` lleno de carácteres en blanco.
+
+```
+@Test
+public void testSendEmailToTeacherNotConfirmBodyFullOfNothing() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = "    ";
+    
+    // Act
+    try {
+        app.sendEmailToTeacherIdWithConfirmation(id, subject, body, false);
+        
+    // Assert
+        Assertions.fail("This test should raise an Exception");
+    } catch (Exception e) {
+        assertEquals(
+            "El cuerpo debería ser nulo. Cámbielo y marque la casilla 'Confirmar'",
+            e.getMessage()
+        );
+    }
+    
+    final var expectedFinalState = new CampusAppState(
+        defaultInitialState.usersRepositoryState(),
+        defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+
+}
+```
+
+Podemos observar como este test pasa correctamente sin necesidad de implementar ningún cambio. Con esto habremos terminado nuestro desarrollo.

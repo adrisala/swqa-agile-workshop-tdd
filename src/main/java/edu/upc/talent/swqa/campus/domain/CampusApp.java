@@ -68,7 +68,7 @@ public final class CampusApp {
           .forEach(u -> emailService.sendEmail(u, subject, body));
   }
 
-    public void sendEmailToTeacherId(String id, String subject, String body) throws Exception{
+    public void sendEmailToTeacherId(String id, String subject, String body) throws Exception {
       if (subject == null || subject.isBlank()) {
         throw new Exception("The email subject is mandatory");
       }
@@ -86,5 +86,17 @@ public final class CampusApp {
       }
 
       emailService.sendEmail(user, subject, body);
+    }
+
+    public void sendEmailToTeacherIdWithConfirmation(String id, String subject, String body, boolean confirm) throws Exception {
+      if (!confirm && body == null) {
+        throw new Exception("No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'");
+      }
+
+      if (confirm && body == null) {
+        body = "";
+      }
+
+      sendEmailToTeacherId(id, subject, body);
     }
 }

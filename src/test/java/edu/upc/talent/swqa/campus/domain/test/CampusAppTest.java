@@ -81,13 +81,17 @@ public final class CampusAppTest {
 
   @Test
   public void testSendEmailToTeacherId(){
+    // Arrange
     final var app = getApp(defaultInitialState);
     final var id = "3";
     final var subject = "Hey! Teacher!";
     final var body = "Let them students alone!!";
 
+    // Act
     try {
       app.sendEmailToTeacherId(id, subject, body);
+
+    // Assert
     } catch (Exception e) {
       Assertions.fail();
     }
@@ -100,13 +104,17 @@ public final class CampusAppTest {
   }
   @Test
   public void testSendEmailToNonexistentId() {
+    // Arrange
     final var app = getApp(defaultInitialState);
     final var id = "-1";
     final var subject = "Hey! Teacher!";
     final var body = "Let them students alone!!";
 
+    // Act
     try {
       app.sendEmailToTeacherId(id, subject, body);
+
+    // Assert
       Assertions.fail();
     } catch (Exception e) {
       assertEquals("User " + id + " does not exist", e.getMessage());
@@ -121,13 +129,17 @@ public final class CampusAppTest {
 
   @Test
   public void testSendEmailToTeacherUserId() {
+    // Arrange
     final var app = getApp(defaultInitialState);
     final var id = "1";
     final var subject = "Hey! Teacher!";
     final var body = "Let them students alone!!";
 
+    // Act
     try {
       app.sendEmailToTeacherId(id, subject, body);
+
+    // Assert
       Assertions.fail();
     } catch (Exception e) {
       assertEquals("User " + id + " is not a teacher", e.getMessage());
@@ -163,13 +175,17 @@ public final class CampusAppTest {
 
   @Test
   public void testSendEmailToTeacherEmptySubject() {
+    // Arrange
     final var app = getApp(defaultInitialState);
     final var id = "3";
     final String subject = "";
     final var body = "Let them students alone!!";
 
+    // Act
     try {
       app.sendEmailToTeacherId(id, subject, body);
+
+    // Assert
       Assertions.fail("No exception thrown");
     } catch (Exception e) {
       assertEquals("The email subject is mandatory", e.getMessage());
@@ -184,13 +200,17 @@ public final class CampusAppTest {
 
   @Test
   public void testSendEmailToTeacherSubjectFullOfNothing() {
+    // Arrange
     final var app = getApp(defaultInitialState);
     final var id = "3";
     final String subject = "    ";
     final var body = "Let them students alone!!";
 
+    // Act
     try {
       app.sendEmailToTeacherId(id, subject, body);
+
+    // Assert
       Assertions.fail("No exception thrown");
     } catch (Exception e) {
       assertEquals("The email subject is mandatory", e.getMessage());
@@ -202,6 +222,90 @@ public final class CampusAppTest {
     );
     assertEquals(expectedFinalState, getFinalState());
   }
+
+  @Test
+  public void testSendEmailToTeacherNoConfirmBodyNull() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = null;
+
+    // Act
+    try {
+      app.sendEmailToTeacherIdWithConfirmation(id, subject, body, false);
+
+      // Assert
+      Assertions.fail("No exception thrown");
+    } catch (Exception e) {
+      assertEquals(
+        "No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'",
+        e.getMessage()
+      );
+    }
+
+    final var expectedFinalState = new CampusAppState(
+            defaultInitialState.usersRepositoryState(),
+            defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+
+  }
+
+  @Test
+  public void testSendEmailToTeacherConfirmBodyNull() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = null;
+    final var sentEmail = Set.of(new SentEmail("mariah.hairam@example.com", subject, ""));
+
+    // Act
+    try {
+      app.sendEmailToTeacherIdWithConfirmation(id, subject, body, true);
+
+    // Assert
+    } catch (Exception e) {
+      Assertions.fail("This test shouldn't raise an Exception");
+    }
+
+    final var expectedFinalState = new CampusAppState(
+            defaultInitialState.usersRepositoryState(),
+            union(defaultInitialState.sentEmails(), sentEmail)
+    );
+    assertEquals(expectedFinalState, getFinalState());
+  }
+
+  @Test
+  public void testSendEmailToTeacherConfirmBodyEmpty() {
+    // Arrange
+    final var app = getApp(defaultInitialState);
+    final var id = "3";
+    final String subject = "Hey! Teacher!";
+    final String body = "";
+
+    // Act
+    try {
+      app.sendEmailToTeacherIdWithConfirmation(id, subject, body, true);
+
+    // Assert
+      Assertions.fail("This test shouldn't raise an Exception");
+    } catch (Exception e) {
+      assertEquals(
+              "No se ha indicado el cuerpo del mensaje. Infórmelo o marque la casilla 'Confirmar'",
+              e.getMessage()
+      );
+    }
+
+    final var expectedFinalState = new CampusAppState(
+            defaultInitialState.usersRepositoryState(),
+            defaultInitialState.sentEmails()
+    );
+    assertEquals(expectedFinalState, getFinalState());
+  }
+
+
 
 }
 

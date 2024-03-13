@@ -77,11 +77,14 @@ public interface UsersRepositoryTest {
 
   @Test
   default void testGetUserById(){
+    // Arrange
     final var repository = getRepository(defaultInitialState);
     final var id = "3";
 
+    // Act
     final Optional<User> resultUser = repository.getUserById(id);
 
+    // Assert
     assertEquals(true, resultUser.isPresent());
     assertEquals(mariahHairam, resultUser.get());
     assertExpectedFinalState(defaultInitialState);
@@ -89,11 +92,14 @@ public interface UsersRepositoryTest {
 
   @Test
   default void testGetUserNonExistent(){
+    // Arrange
     final var repository = getRepository(defaultInitialState);
     final var id = "-1";
 
+    // Act
     final Optional<User> resultUser = repository.getUserById(id);
 
+    // Assert
     assertEquals(true, resultUser.isEmpty());
     assertExpectedFinalState(defaultInitialState);
   }

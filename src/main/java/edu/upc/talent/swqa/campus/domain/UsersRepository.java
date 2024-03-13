@@ -12,6 +12,6 @@ public interface UsersRepository {
 
   void createGroup(final String id, final String name);
 
-  Optional<User> getUserById(String id) throws NoSuchElementException;
+  Optional<User> getUserById(String id);
 
 }

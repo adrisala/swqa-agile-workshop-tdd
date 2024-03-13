@@ -1,4 +1,5 @@
 # Taller de TDD
+## Nil Vilas - Adrià Sala
 
 Queremos desarrollar una nueva funcionalidad consistente en enviar un correo electrónico a un profesor a partir de su id.
 
